@@ -30,6 +30,7 @@
 #include "mori/utils/mori_log.hpp"
 #include "umbp/common/config.h"
 #include "umbp/distributed/config.h"
+#include "umbp/distributed/transfer/mori_io_engine.h"
 
 namespace mori::umbp {
 
@@ -162,6 +163,17 @@ DistributedClient::DistributedClient(const UMBPConfig& config)
     pool_client_.reset();
     release_scratch();
     throw std::runtime_error("DistributedClient: ranged scratch registration failed");
+  }
+  // An arena is a NIC memory region only where this node has an RDMA engine.
+  // Each is checked on its own: the PUT arena's hugepages can fall back to
+  // 4 KiB pages after the GET arena got them.
+  if (!dc.io_engine.host.empty()) {
+    for (const auto* handle : {&ranged_get_scratch_handle_, &ranged_put_scratch_handle_}) {
+      if (!handle->valid()) continue;
+      WarnIfNicRegionAliases("Ranged scratch arena", handle->mapped_size, handle->actual_alignment,
+                             "Use UMBP_DISTRIBUTED_RANGED_SCRATCH_USE_HUGEPAGES or a smaller "
+                             "UMBP_DISTRIBUTED_RANGED_SCRATCH_BYTES.");
+    }
   }
 
   std::string tags_str;
