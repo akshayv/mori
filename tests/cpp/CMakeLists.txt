@@ -43,6 +43,13 @@ target_include_directories(test_transport_tcp
 target_include_directories(test_transport_tcp PUBLIC ${CMAKE_SOURCE_DIR})
 target_link_libraries(test_transport_tcp mori_application)
 
+# The ionic firmware version parser: pure string handling, no NIC needed.
+add_executable(test_ionic_fw_version application/test_ionic_fw_version.cpp)
+target_include_directories(test_ionic_fw_version PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(test_ionic_fw_version PUBLIC ${CMAKE_SOURCE_DIR})
+target_link_libraries(test_ionic_fw_version mori_application gtest_main)
+add_test(NAME ionic_fw_version COMMAND test_ionic_fw_version)
+
 add_executable(test_transport_ibverbs application/test_transport_ibverbs.cpp)
 
 target_include_directories(test_transport_ibverbs
